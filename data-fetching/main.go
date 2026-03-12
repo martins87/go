@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io"
 	"log"
@@ -9,20 +10,25 @@ import (
 )
 
 type Rocket struct {
-	RocketId 			string			`json:"rocket_id"`
-	RocketName 		string	`json:"rocket_name"`
+	RocketId string `json:"rocket_id"`
+	RocketName string `json:"rocket_name"`
 }
 
 type Launch struct {
-	FlightNumber	int			`json:"flight_number"`
-	MissionName		string	`json:"mission_name"`
-	LaunchYear		string	`json:"launch_year"`
-	LaunchSuccess	bool		`json:"launch_success"`
-	Details				string	`json:"details"`
-	Rocket								`json:"rocket"`
+	FlightNumber int `json:"flight_number"`
+	MissionName string `json:"mission_name"`
+	LaunchYear string `json:"launch_year"`
+	LaunchSuccess bool `json:"launch_success"`
+	Details string `json:"details"`
+	Rocket `json:"rocket"`
 }
 
+type LaunchList []Launch
+
 func main() {
+	year := flag.String("y", "2006", "config string")
+	flag.Parse()
+
 	launchesEndpoint := "https://api.spacexdata.com/v3/launches"
 
 	res, err := http.Get(launchesEndpoint)
@@ -38,13 +44,31 @@ func main() {
 			log.Fatalf("Error reading response body: %v", err)
 		}
 
-		var launches []Launch
+		var launches LaunchList
 		json.Unmarshal(bodyBytes, &launches)
 
-		for _, launch := range launches {
-			fmt.Printf("%+v\n\n", launch)
-		}
+		launchesByYear := launches.getLaunchesByYear(*year)
+
+		printLaunches(launchesByYear)
 	} else {
 		fmt.Printf("Received non-OK status code: %v\n", res.StatusCode)
 	}
+}
+
+func printLaunches(l LaunchList) {
+	for _, launch := range l {
+		fmt.Printf("%+v\n\n", launch)
+	}
+}
+
+func (l LaunchList) getLaunchesByYear(y string) []Launch {
+	list := []Launch{}
+
+	for _, launch := range l {
+		if launch.LaunchYear == y {
+			list = append(list, launch)
+		}
+	}
+
+	return list
 }
