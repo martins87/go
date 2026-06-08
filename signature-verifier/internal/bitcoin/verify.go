@@ -16,17 +16,7 @@ type VerifyRequest struct {
 }
 
 func Verify(req VerifyRequest) (bool, error) {
-	hash, err := MessageHash(req.Message)
-	if err != nil {
-		return false, fmt.Errorf("error building message request: %w", err)
-	}
-
-	sigBytes, err := base64.StdEncoding.DecodeString(req.Signature)
-	if err != nil {
-		return false, fmt.Errorf("error decoding signature: %w", err)
-	}
-
-	pubKey, _, err := ecdsa.RecoverCompact(sigBytes, hash)
+	pubKey, err := getPubKey(req)
 	if err != nil {
 		return false, fmt.Errorf("error recovering public key: %w", err)
 	}
@@ -41,6 +31,25 @@ func Verify(req VerifyRequest) (bool, error) {
 	}
 
 	return false, nil
+}
+
+func getPubKey(req VerifyRequest) (*btcec.PublicKey, error) {
+	hash, err := MessageHash(req.Message)
+	if err != nil {
+		return nil, err
+	}
+
+	sigBytes, err := base64.StdEncoding.DecodeString(req.Signature)
+	if err != nil {
+		return nil, err
+	}
+
+	pubKey, _, err := ecdsa.RecoverCompact(sigBytes, hash)
+	if err != nil {
+		return nil, err
+	}
+
+	return pubKey, nil
 }
 
 func deriveAddresses(pubKey *btcec.PublicKey) ([]string, error) {
