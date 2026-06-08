@@ -1,9 +1,6 @@
 package bitcoin
 
 import (
-	"encoding/hex"
-	"fmt"
-
 	"github.com/btcsuite/btcd/btcec/v2"
 	"github.com/btcsuite/btcd/btcutil"
 	"github.com/btcsuite/btcd/chaincfg"
@@ -11,7 +8,6 @@ import (
 
 func NativeSegwitAddress(pubKey *btcec.PublicKey) (string, error) {
 	pubKeyBytes := pubKey.SerializeCompressed()
-	fmt.Printf("[NativeSegwitAddress] public key: %s\n", hex.EncodeToString(pubKeyBytes))
 
 	hash160 := btcutil.Hash160(pubKeyBytes)
 
@@ -25,7 +21,6 @@ func NativeSegwitAddress(pubKey *btcec.PublicKey) (string, error) {
 
 func LegacyAddress(pubKey *btcec.PublicKey) (string, error) {
 	pubKeyBytes := pubKey.SerializeCompressed()
-	fmt.Printf("[LegacyAddress] public key: %s\n", hex.EncodeToString(pubKeyBytes))
 
 	hash160 := btcutil.Hash160(pubKeyBytes)
 
